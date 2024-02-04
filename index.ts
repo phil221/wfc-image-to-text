@@ -4,9 +4,10 @@ import * as fs from "fs";
 const parseIngredientsAndInstructions = (recipe: string[]) => {
   const ingredients: string[] = [];
   const instructions: string[] = [];
+
+  const endIndex = recipe.indexOf(recipe.find(row => row.includes("Per serving")) || "");
   recipe.forEach((textRow, i) => {
-    const endofInstructions = textRow[0] === "P";
-    if(i > 3 && !endofInstructions){
+    if(i > 3 && i < endIndex){
       textRow.at(1) !== "." ? ingredients.push(textRow) : instructions.push(textRow);
     }
   })
@@ -37,6 +38,14 @@ const parseIngredientsAndInstructions = (recipe: string[]) => {
 
     const [ ingredients, instructions ] = parseIngredientsAndInstructions(textArray);
     console.log("ingredients:", ingredients);
+    // ingredients are weird
+    // two on each line, usually
+    // you have one or more numbers (amount), then strings (actual ingredient) for each item
+    // So need to check for any numbers that follow the FIRST string
+    // that comes after the FIRST numbers
+    // and that is where the second item starts
+    // kinda gross, but appears to be universal
+    
     console.log("instructions:", instructions);
 
 const contents = 
