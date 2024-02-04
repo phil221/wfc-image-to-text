@@ -1,5 +1,5 @@
 import { createWorker } from 'tesseract.js';
-import fs from "fs";
+import * as fs from "fs";
 
 const parseIngredientsAndInstructions = (recipe: string[]) => {
   const ingredients: string[] = [];
@@ -47,7 +47,7 @@ servingsNumber: ${servingsNumber}
 prepTime: ${prepTime}
 ingredients: 
   - 
-instructions: ${instructions.map((line, i) => `\n   - ${line}`)}
+instructions: ${instructions.map(line => `\n  - ${line}`)}
 comments: 
 nutritionFacts: 
 category: 
