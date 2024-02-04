@@ -1,9 +1,9 @@
 import { createWorker } from 'tesseract.js';
 import fs from "fs";
 
-const parseIngredientsAndInstructions = (recipe) => {
-  const ingredients = [];
-  const instructions = [];
+const parseIngredientsAndInstructions = (recipe: string[]) => {
+  const ingredients: string[] = [];
+  const instructions: string[] = [];
   recipe.forEach((textRow, i) => {
     const endofInstructions = textRow[0] === "P";
     if(i > 3 && !endofInstructions){
