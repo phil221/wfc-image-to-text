@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "dev": "npx tsc -w index.ts"
+    "dev": "npx tsc --noEmit -w index.ts"
   },
   "keywords": [],
   "author": "",
