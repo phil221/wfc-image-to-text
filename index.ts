@@ -1,5 +1,8 @@
 import { createWorker } from "tesseract.js";
 import * as fs from "fs";
+import * as path from "path";
+
+const imagesDir = path.resolve(__dirname, "./images");
 
 type Ingredient = {
   firstItem: string;
@@ -65,55 +68,56 @@ const parseIngredientsAndInstructions = (recipe: string[]) => {
 
 (async () => {
   const worker = await createWorker("eng");
-  // fs.readdir("./recipes/", (err, files) => {
-  //     files.forEach(async (file) => {
-  //         console.log(file)
-  //         const ret = await worker.recognize(file);
-  //           console.log(ret.data.text);
-  //     });
-  // });
-  const ret = await worker.recognize("./images/apfelkucken.png");
-  const { text } = ret.data;
+  fs.readdir(imagesDir, (err, files) => {
+    if (err) console.error(err);
+    console.log("files:", files);
+    console.log(imagesDir);
+    files.forEach(async (file) => {
+      const ret = await worker.recognize(`${imagesDir}/${file}`);
+      const { text } = ret.data;
+      console.log(`text for ${file}:`, text);
+      //   const textArray = text.split("\n");
+      //   const [title] = textArray;
+      //   const lowercasedTitle = title.toLowerCase();
+      //   const author = textArray.at(1);
+      //   const servingsNumber = textArray.at(2);
+      //   const prepTime = textArray.at(3);
 
-  const textArray = text.split("\n");
-  const [title] = textArray;
-  const lowercasedTitle = title.toLowerCase();
-  const author = textArray.at(1);
-  const servingsNumber = textArray.at(2);
-  const prepTime = textArray.at(3);
+      //   const [ingredients, instructions] =
+      //     parseIngredientsAndInstructions(textArray);
+      //   const nutritionRow = textArray.find((row) =>
+      //     row.includes("Per serving")
+      //   ) as string;
+      //   let nutritionFacts = "";
+      //   if (nutritionRow) {
+      //     const nutritionRowIndex = textArray.indexOf(nutritionRow);
+      //     const nutritionValues = textArray.slice(nutritionRowIndex);
+      //     nutritionFacts = nutritionValues.filter((value) => value).join(",");
+      //   }
 
-  const [ingredients, instructions] =
-    parseIngredientsAndInstructions(textArray);
-  const nutritionRow = textArray.find((row) =>
-    row.includes("Per serving")
-  ) as string;
-  let nutritionFacts = "";
-  if (nutritionRow) {
-    const nutritionRowIndex = textArray.indexOf(nutritionRow);
-    const nutritionValues = textArray.slice(nutritionRowIndex);
-    nutritionFacts = nutritionValues.filter((value) => value).join(",");
-  }
+      //   const contents = `---
+      //       name: ${title}
+      //       author: ${author}
+      //       servingsNumber: ${servingsNumber}
+      //       prepTime: ${prepTime}
+      //       ingredients: ${(ingredients as Ingredient[]).map(
+      //         (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
+      //       )}
+      //       instructions: ${instructions.map((line) => `\n  - ${line}`)}
+      //       comments:
+      //       nutritionFacts: '${nutritionFacts}'
+      //       category:
+      //     ---`;
 
-  const contents = `---
-  name: ${title}
-  author: ${author}
-  servingsNumber: ${servingsNumber}
-  prepTime: ${prepTime}
-  ingredients: ${(ingredients as Ingredient[]).map(
-    (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
-  )}
-  instructions: ${instructions.map((line) => `\n  - ${line}`)}
-  comments:
-  nutritionFacts: '${nutritionFacts}'
-  category:
----`;
-
-  fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log("files generated");
-    }
+      //   fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
+      //     if (err) {
+      //       console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
+      //     } else {
+      //       console.log("files generated");
+      //     }
+      //   });
+    });
   });
+
   await worker.terminate();
 })();
