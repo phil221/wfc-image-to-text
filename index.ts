@@ -31,6 +31,11 @@ const parseIngredientsAndInstructions = (recipe: string[]) => {
   // and that is where the second item starts
   // kinda gross, but appears to be universal
 
+  // edit: upon closer inspection of the recipes: no universal rules re ingredients
+  // the exceptions to the number delimiter pattern are too numerous to be worth accounting for;
+  // however, this pattern DOES seem to be the most (51% at least?) consistent pattern
+  // will assume that pattern and correct the exceptions as needed
+
   const finalIngredientsList: Ingredient[] = [];
   ingredients.forEach((row) => {
     const ingredientRow = row.split(" ");
@@ -79,28 +84,36 @@ const parseIngredientsAndInstructions = (recipe: string[]) => {
 
   const [ingredients, instructions] =
     parseIngredientsAndInstructions(textArray);
-  // console.log("ingredients:", ingredients, "instructions:", instructions);
+  const nutritionRow = textArray.find((row) =>
+    row.includes("Per serving")
+  ) as string;
+  let nutritionFacts = "";
+  if (nutritionRow) {
+    const nutritionRowIndex = textArray.indexOf(nutritionRow);
+    const nutritionValues = textArray.slice(nutritionRowIndex);
+    nutritionFacts = nutritionValues.filter((value) => value).join(",");
+  }
 
-  // const contents =
-  // `---
-  // name: ${title}
-  // author: ${author}
-  // servingsNumber: ${servingsNumber}
-  // prepTime: ${prepTime}
-  // ingredients:
-  //   -
-  // instructions: ${instructions.map(line => `\n  - ${line}`)}
-  // comments:
-  // nutritionFacts:
-  // category:
-  // ---`;
+  const contents = `---
+  name: ${title}
+  author: ${author}
+  servingsNumber: ${servingsNumber}
+  prepTime: ${prepTime}
+  ingredients: ${(ingredients as Ingredient[]).map(
+    (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
+  )}
+  instructions: ${instructions.map((line) => `\n  - ${line}`)}
+  comments:
+  nutritionFacts: '${nutritionFacts}'
+  category:
+---`;
 
-  // fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
-  //   if(err) {
-  //     console.error(err);
-  //   } else {
-  //     console.log("it worked!!!!")
-  //   }
-  // });
-  // await worker.terminate();
+  fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log("files generated");
+    }
+  });
+  await worker.terminate();
 })();
