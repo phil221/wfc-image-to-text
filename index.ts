@@ -88,30 +88,6 @@ const worker2 = await createWorker("eng");
     writeToFs(contents);
   }
 
-  //   const contents = `---
-  //       name: ${title}
-  //       author: ${author}
-  //       servingsNumber: ${servingsNumber}
-  //       prepTime: ${prepTime}
-  //       ingredients: ${(ingredients as Ingredient[]).map(
-  //         (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
-  //       )}
-  //       instructions: ${instructions.map((line) => `\n  - ${line}`)}
-  //       comments:
-  //       nutritionFacts: '${nutritionFacts}'
-  //       category:
-  //     ---`;
-
-  //   fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
-  //     if (err) {
-  //       console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
-  //     } else {
-  //       console.log("files generated");
-  //     }
-  //   });
-
-  // });
-
   await scheduler.terminate();
 })();
 
@@ -138,6 +114,7 @@ function parse(text: string) {
   return {
     lowercasedTitle,
     author,
+    title,
     servingsNumber,
     prepTime,
     ingredients,
@@ -146,6 +123,35 @@ function parse(text: string) {
   };
 }
 
-function writeToFs<T>({ ...args }: T) {
-  console.log(args);
+function writeToFs({
+  instructions,
+  nutritionFacts,
+  lowercasedTitle,
+  title,
+  author,
+  servingsNumber,
+  prepTime,
+  ingredients,
+}: any) {
+  const contents = `---
+        name: ${title}
+        author: ${author}
+        servingsNumber: ${servingsNumber}
+        prepTime: ${prepTime}
+        ingredients: ${(ingredients as Ingredient[]).map(
+          (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
+        )}
+        instructions: ${instructions.map((line: string) => `\n  - ${line}`)}
+        comments:
+        nutritionFacts: '${nutritionFacts}'
+        category:
+      ---`;
+
+  fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
+    if (err) {
+      console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
+    } else {
+      console.log("files generated");
+    }
+  });
 }
