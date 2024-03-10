@@ -12,63 +12,6 @@ type Ingredient = {
   secondItem: string;
 };
 
-const parseIngredientsAndInstructions = (recipe: string[]) => {
-  const ingredients: string[] = [];
-  const instructions: string[] = [];
-
-  const endIndex = recipe.indexOf(
-    recipe.find((row) => row.includes("Per serving")) || ""
-  );
-  recipe.forEach((textRow, i) => {
-    if (i > 3 && i < endIndex) {
-      textRow.at(1) !== "."
-        ? ingredients.push(textRow)
-        : instructions.push(textRow);
-    }
-  });
-  ingredients.filter((item) => item);
-  instructions.filter((item) => item);
-
-  // ingredients are weird
-  // two on each line, usually
-  // you have one or more numbers (amount), then strings (actual ingredient) for each item
-  // So need to check for any numbers that follow the FIRST string
-  // that comes after the FIRST numbers
-  // and that is where the second item starts
-  // kinda gross, but appears to be universal
-
-  // edit: upon closer inspection of the recipes: no universal rules re ingredients
-  // the exceptions to the number delimiter pattern are too numerous to be worth accounting for;
-  // however, this pattern DOES seem to be the most (51% at least?) consistent pattern
-  // will assume that pattern and correct the exceptions as needed
-
-  const finalIngredientsList: Ingredient[] = [];
-  ingredients.forEach((row) => {
-    const ingredientRow = row.split(" ");
-    const partialRow = row.split(" ").slice(2);
-
-    const indexOfSalt = ingredientRow.indexOf("dash");
-    if (indexOfSalt > 0) {
-      const firstItem = ingredientRow.slice(0, indexOfSalt).join(" ");
-      const secondItem = ingredientRow.slice(indexOfSalt).join(" ");
-
-      finalIngredientsList.push({ firstItem, secondItem });
-    }
-
-    partialRow.forEach((char) => {
-      if (Number(char)) {
-        const numberIndex = ingredientRow.indexOf(char);
-        const firstItem = ingredientRow.slice(0, numberIndex).join(" ");
-        const secondItem = ingredientRow.slice(numberIndex).join(" ");
-
-        finalIngredientsList.push({ firstItem, secondItem });
-      }
-    });
-  });
-
-  return [finalIngredientsList, instructions];
-};
-
 const scheduler = createScheduler();
 const worker1 = await createWorker("eng");
 const worker2 = await createWorker("eng");
@@ -134,24 +77,85 @@ function writeToFs({
   ingredients,
 }: any) {
   const contents = `---
-        name: ${title}
-        author: ${author}
-        servingsNumber: ${servingsNumber}
-        prepTime: ${prepTime}
-        ingredients: ${(ingredients as Ingredient[]).map(
-          (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
-        )}
-        instructions: ${instructions.map((line: string) => `\n  - ${line}`)}
-        comments:
-        nutritionFacts: '${nutritionFacts}'
-        category:
-      ---`;
+name: ${title}
+author: ${author}
+servingsNumber: ${servingsNumber}
+prepTime: ${prepTime}
+ingredients: ${(ingredients as Ingredient[]).map(
+    (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
+  )}
+instructions: ${instructions.map((line: string) => `\n  - ${line}`)}
+comments:
+nutritionFacts: '${nutritionFacts}'
+category:
+---`;
 
-  fs.writeFile(`./recipes/${lowercasedTitle}.md`, contents, (err) => {
-    if (err) {
-      console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
-    } else {
-      console.log("files generated");
+  fs.writeFile(
+    `./recipes/${lowercasedTitle.split(" ").join("-")}.md`,
+    contents,
+    (err) => {
+      if (err) {
+        console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
+      } else {
+        console.log("files generated");
+      }
+    }
+  );
+}
+
+function parseIngredientsAndInstructions(recipe: string[]) {
+  const ingredients: string[] = [];
+  const instructions: string[] = [];
+
+  const endIndex = recipe.indexOf(
+    recipe.find((row) => row.includes("Per serving")) || ""
+  );
+  recipe.forEach((textRow, i) => {
+    if (i > 3 && i < endIndex) {
+      textRow.at(1) !== "."
+        ? ingredients.push(textRow)
+        : instructions.push(textRow);
     }
   });
+  ingredients.filter((item) => item);
+  instructions.filter((item) => item);
+
+  // ingredients are weird
+  // two on each line, usually
+  // you have one or more numbers (amount), then strings (actual ingredient) for each item
+  // So need to check for any numbers that follow the FIRST string
+  // that comes after the FIRST numbers
+  // and that is where the second item starts
+  // kinda gross, but appears to be universal
+
+  // edit: upon closer inspection of the recipes: no universal rules re ingredients
+  // the exceptions to the number delimiter pattern are too numerous to be worth accounting for;
+  // however, this pattern DOES seem to be the most (51% at least?) consistent pattern
+  // will assume that pattern and correct the exceptions as needed
+
+  const finalIngredientsList: Ingredient[] = [];
+  ingredients.forEach((row) => {
+    const ingredientRow = row.split(" ");
+    const partialRow = row.split(" ").slice(2);
+
+    const indexOfSalt = ingredientRow.indexOf("dash");
+    if (indexOfSalt > 0) {
+      const firstItem = ingredientRow.slice(0, indexOfSalt).join(" ");
+      const secondItem = ingredientRow.slice(indexOfSalt).join(" ");
+
+      finalIngredientsList.push({ firstItem, secondItem });
+    }
+
+    partialRow.forEach((char) => {
+      if (Number(char)) {
+        const numberIndex = ingredientRow.indexOf(char);
+        const firstItem = ingredientRow.slice(0, numberIndex).join(" ");
+        const secondItem = ingredientRow.slice(numberIndex).join(" ");
+
+        finalIngredientsList.push({ firstItem, secondItem });
+      }
+    });
+  });
+
+  return [finalIngredientsList, instructions];
 }
