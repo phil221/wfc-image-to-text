@@ -97,7 +97,7 @@ category:
       if (err) {
         console.error(`error parsing recipe for '${lowercasedTitle}':`, err);
       } else {
-        console.log("files generated");
+        console.log(`file for '${lowercasedTitle}' generated`);
       }
     }
   );
