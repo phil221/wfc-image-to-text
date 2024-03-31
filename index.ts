@@ -47,6 +47,15 @@ function parse(text: string) {
   const nutritionRow = textArray.find((row) =>
     row.includes("Per serving")
   ) as string;
+  let comments = "";
+  const lineAfterInstructionsIndex =
+    textArray.indexOf(instructions.at(-1) as string) + 1;
+  const nutritionRowIndex = textArray.indexOf(nutritionRow);
+  if (lineAfterInstructionsIndex !== nutritionRowIndex) {
+    comments = textArray
+      .slice(lineAfterInstructionsIndex, nutritionRowIndex)
+      .join("");
+  }
   let nutritionFacts = "";
   if (nutritionRow) {
     const nutritionRowIndex = textArray.indexOf(nutritionRow);
@@ -62,6 +71,7 @@ function parse(text: string) {
     prepTime,
     ingredients,
     instructions,
+    comments,
     nutritionFacts,
   };
 }
@@ -75,6 +85,7 @@ function writeToFs({
   servingsNumber,
   prepTime,
   ingredients,
+  comments,
 }: any) {
   const contents = `---
 name: ${title}
@@ -85,7 +96,7 @@ ingredients: ${(ingredients as Ingredient[]).map(
     (line) => `\n  - ${line.firstItem}\t\t${line.secondItem}`
   )}
 instructions: ${instructions.map((line: string) => `\n  - ${line}`)}
-comments:
+comments: ${comments}
 nutritionFacts: '${nutritionFacts}'
 category:
 ---`;
